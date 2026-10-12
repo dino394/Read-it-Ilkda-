@@ -259,10 +259,11 @@ async function fetchPublicHtml(initialUrl) {
   throw new Error("웹페이지를 가져오지 못했습니다.");
 }
 
-app.get("/api/health", (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "읽다 서버가 정상적으로 작동하고 있습니다.",
+    message: "읽다 서버가 정상적으로 실행 중입니다.",
+    health: "/api/health",
   });
 });
 
