@@ -6,7 +6,7 @@ import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
 const app = express();
-const PORT = 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 const MAX_REDIRECTS = 5;
 const MAX_HTML_SIZE = 2 * 1024 * 1024;
@@ -380,6 +380,6 @@ app.post("/api/fetch", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`읽다 서버 실행: http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`읽다 서버 실행: 포트 ${PORT}`);
 });
