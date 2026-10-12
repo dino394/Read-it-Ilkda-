@@ -1,0 +1,13 @@
+{
+  "name": "read-it-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}
