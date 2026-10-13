@@ -7,12 +7,21 @@ import { isIP } from "node:net";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
+const allowedOrigin = process.env.FRONTEND_URL;
+
 
 const MAX_REDIRECTS = 5;
 const MAX_HTML_SIZE = 2 * 1024 * 1024;
 const REQUEST_TIMEOUT = 10000;
 
-app.use(cors());
+
+const allowedOrigin = process.env.FRONTEND_URL;
+
+app.use(
+  cors({
+    origin: allowedOrigin,
+  })
+);
 app.use(express.json({ limit: "10kb" }));
 
 // IPv4 사설 주소, 루프백, 링크 로컬, 예약된 주소 차단
