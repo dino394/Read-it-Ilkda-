@@ -1084,6 +1084,10 @@
   background: var(--reader-background, #f8f8f6);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
+.reader > .reading-progress .app.dark{
+  background: #353535;
+  color: #ddd;
+}
 
 .reading-progress-info {
   display: flex;
@@ -1597,6 +1601,10 @@
   z-index: 1000;
 }
 
+.reader > .reading-progress .app.dark {
+  background: #38352f; color: #fff;
+}
+
 .reader > .reader-content {
   padding-top: 75px;
 }
@@ -1735,3 +1743,21 @@ background-color: rgba(127, 127, 127, 0.1);
 background-color: rgba(180, 35, 24, 0.08);
 }
 
+
+/* 다크 모드 - 읽기 진행률 */
+.app.dark .reading-progress {
+  background: #1e1e1e;
+  color: #e5e5e5;
+}
+
+.app.dark .reading-progress-info {
+  color: #e5e5e5;
+}
+
+.app.dark .reading-progress-track {
+  background: #3a3a3a;
+}
+
+.app.dark .reading-progress-fill {
+  background: #a78bfa;
+}
