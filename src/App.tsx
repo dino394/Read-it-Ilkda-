@@ -342,6 +342,41 @@ function App() {
     );
   };
 
+
+  // 자료실 전체 삭제
+  const handleDeleteAllDocuments = () => {
+    if (documents.length === 0) {
+      alert("삭제할 자료가 없습니다.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `저장된 자료 ${documents.length}개를 모두 삭제할까요?\n\n` +
+      "읽기 위치와 진행률도 함께 삭제됩니다.\n" +
+      "이 작업은 되돌릴 수 없습니다.\n\n" +
+      "삭제 전에 JSON 백업을 권장합니다."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    // 각 자료의 읽기 기록 삭제
+    documents.forEach((doc) => {
+      localStorage.removeItem(`read-it-position-${doc.id}`);
+      localStorage.removeItem(`read-it-progress-${doc.id}`);
+      localStorage.removeItem(`read-it-completed-${doc.id}`);
+      localStorage.removeItem(`read-it-reset-${doc.id}`);
+    });
+
+    // 읽기 화면 종료 및 자료 비우기
+    setSelectedDocumentId(null);
+    setDocuments([]);
+
+    alert("모든 자료를 삭제했습니다.");
+  };
+
+
   // 자료 삭제
   const handleDeleteDocument = (id: string) => {
     const targetDocument = documents.find(
@@ -370,6 +405,27 @@ function App() {
     setSelectedDocumentId(null);
   };
 
+  const handleDeleteMultipleDocuments = (ids: string[]) => {
+const idsToDelete = new Set(ids);
+
+// 삭제한 자료의 저장된 읽기 위치와 진행률도 정리
+idsToDelete.forEach((id) => {
+localStorage.removeItem(`read-it-position-${id}`);
+localStorage.removeItem(`read-it-progress-${id}`);
+localStorage.removeItem(`read-it-completed-${id}`);
+localStorage.removeItem(`read-it-reset-${id}`);
+});
+
+setDocuments((previous) =>
+previous.filter((document) => !idsToDelete.has(document.id))
+);
+
+setSelectedDocumentId((previous) =>
+previous && idsToDelete.has(previous) ? null : previous
+);
+};
+
+
   return (
     <div className={`app ${darkMode ? "dark" : ""}`}>
       <Header
@@ -397,6 +453,8 @@ function App() {
           onExportBackup={handleExportBackup}
           onImportBackup={handleImportBackup}
           onAddUrl={handleAddUrl}
+          onDeleteAllDocuments={handleDeleteAllDocuments}
+          onDeleteMultipleDocuments={handleDeleteMultipleDocuments}
         />
       )}
     </div>

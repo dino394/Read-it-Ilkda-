@@ -489,18 +489,22 @@
 .reader {
   width: min(760px, calc(100% - 40px));
   margin: 0 auto;
-
-  padding: 40px 0 100px;
+  padding: 40px 0 160px;
 }
 
 .back-button {
+  position: fixed;
+  top: 62px;
+  left: max(20px, calc((100% - 800px) / 2));
+  z-index: 1001;
+
   border: 0;
-  background: transparent;
-
-  padding: 0;
-
+  background: var(--reader-background, #fff);
+  padding: 8px 12px;
   color: #777;
   font-size: 14px;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
 .back-button:hover {
@@ -1064,3 +1068,670 @@
   font-size: 13px;
   line-height: 1.6;
 }
+
+
+.reader > .reading-progress {
+  position: fixed !important;
+  top: 60px !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1001 !important;
+  display: block !important;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 20px;
+  background: var(--reader-background, #f8f8f6);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.reading-progress-info {
+  display: flex;
+  justify-content: space-between;
+  max-width: 800px;
+  margin: 0 auto 8px;
+  font-size: 13px;
+}
+
+.reading-progress-track {
+  width: 100%;
+  max-width: 800px;
+  height: 5px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e5e5;
+}
+
+.reading-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #777;
+  transition: width 0.15s ease;
+}
+
+.reader {
+  padding-top: 65px;
+}
+
+/* 읽기 진행률과 진행 막대 */
+
+.document-reading-progress {
+  margin-top: 14px;
+}
+
+.document-reading-progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+  font-size: 12px;
+  color: #777;
+}
+
+.document-reading-progress-track {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5e5e5;
+}
+
+.document-reading-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #777;
+  transition: width 0.2s ease;
+}
+
+/* 완독 표시 */
+.reading-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #eeeeeb;
+  color: #555;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.is-dark .reading-status {
+  background: #353535;
+  color: #ddd;
+}
+
+.reader .back-button {
+  position: fixed !important;
+  top: 62px !important;
+  left: 20px !important;
+  z-index: 1002 !important;
+
+  display: block !important;
+  width: fit-content;
+  margin: 0 !important;
+
+  background: var(--reader-background, #f8f8f6);
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+
+/* 처음부터 읽기 */
+.reader-actions {
+  position: fixed !important;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0;
+  padding: 10px;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.reader-actions button {
+  position: static !important;
+  margin: 0;
+  padding: 10px 16px;
+
+  border: 1px solid #d6d6d0;
+  border-radius: 8px;
+
+  background: #eeeeeb;
+  color: #333;
+
+  font-size: 14px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .reader-actions {
+    bottom: 12px;
+    width: calc(100% - 24px);
+    justify-content: center;
+  }
+
+  .reader-actions button {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 읽기 상태 */
+.filter-label {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  color: #777;
+}
+
+/* =========================
+   읽기 상태 필터
+========================= */
+
+.filter-label {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  color: #777;
+}
+
+.reading-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.reading-filter button {
+  padding: 8px 14px;
+  border: 1px solid #d8d8d2;
+  border-radius: 8px;
+  background: #f5f5f2;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.reading-filter button:hover {
+  background: #eaeae5;
+}
+
+.reading-filter button.active {
+  background: #222;
+  border-color: #222;
+  color: #fff;
+}
+
+/* 다크 모드 */
+
+.app.dark .filter-label {
+  color: #999;
+}
+
+.app.dark .reading-filter button {
+  border-color: #444;
+  background: #2a2a28;
+  color: #ccc;
+}
+
+.app.dark .reading-filter button:hover {
+  background: #353532;
+}
+
+.app.dark .reading-filter button.active {
+  background: #fff;
+  border-color: #fff;
+  color: #222;
+}
+
+/* 모바일 */
+
+@media (max-width: 600px) {
+  .reading-filter {
+    gap: 6px;
+  }
+
+  .reading-filter button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 필터 초기화 */
+.filter-reset-button {
+  margin: 0 0 28px;
+  padding: 7px 12px;
+  border: 1px solid #d8d8d2;
+  border-radius: 7px;
+  background: transparent;
+  color: #777;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.filter-reset-button:hover {
+  background: #f0f0ed;
+  color: #333;
+}
+
+.app.dark .filter-reset-button {
+  border-color: #444;
+  color: #aaa;
+}
+
+.app.dark .filter-reset-button:hover {
+  background: #2a2a28;
+  color: #fff;
+}
+
+/* 자료 유형 표시 */
+
+.document-type {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.document-type-text {
+  background: #f0eee8;
+  color: #6d6252;
+}
+
+.document-type-file {
+  background: #e8eef9;
+  color: #42629a;
+}
+
+.document-type-web {
+  background: #e5f2e9;
+  color: #36734b;
+}
+
+/* 텍스트 자료 */
+.document-type-text {
+  background: #f0eee8;
+  color: #6d6252;
+}
+
+/* 파일 자료 */
+.document-type-file {
+  background: #e8eef9;
+  color: #42629a;
+}
+
+/* 웹 자료 */
+.document-type-web {
+  background: #e5f2e9;
+  color: #36734b;
+}
+
+/* 다크 모드 */
+.app.dark .document-type-text {
+  background: #38352f;
+  color: #d6c8ad;
+}
+
+.app.dark .document-type-file {
+  background: #29364b;
+  color: #b5cdf8;
+}
+
+.app.dark .document-type-web {
+  background: #263d30;
+  color: #a8dfb8;
+}
+
+
+/* 자료 카드 정보 위계 개선 */
+.document-card-title {
+  margin: 16px 0 10px;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.document-card-preview {
+  min-height: 4.5em;
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.7;
+  opacity: 0.78;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.document-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.reading-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f0eee8;
+  color: #6d6252;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reading-status-unread {
+  background: #f0eee8;
+  color: #6d6252;
+}
+
+.reading-status-reading {
+  background: #e8eef9;
+  color: #42629a;
+}
+
+.reading-status-completed {
+  background: #e5f2e9;
+  color: #36734b;
+}
+
+.document-card-date {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+/* 다크 모드 */
+.app.dark .reading-status-unread {
+  background: #38352f;
+  color: #d6c8ad;
+}
+
+.app.dark .reading-status-reading {
+  background: #29364b;
+  color: #b5cdf8;
+}
+
+.app.dark .reading-status-completed {
+  background: #263d30;
+  color: #a8dfb8;
+}
+
+
+
+/* 자료 카드 레이아웃 수정 */
+.document-card {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.document-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.document-card-title {
+  display: block;
+  position: static;
+  margin: 16px 0 10px;
+  color: inherit;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.document-card-preview {
+  position: static;
+  flex: 1 0 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: inherit;
+}
+
+.document-card-bottom {
+  position: static;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.document-reading-progress {
+  position: static;
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 14px;
+  inset: auto;
+  z-index: auto;
+}
+
+.document-reading-progress-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.document-reading-progress-track {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.document-reading-progress-fill {
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  border-radius: inherit;
+}
+
+/* 다크 모드 카드 */
+.app.dark .document-card {
+  background: #222222;
+  color: #f3f3f3;
+  border-color: #3a3a3a;
+}
+
+.app.dark .document-card-title,
+.app.dark .document-card-preview,
+.app.dark .document-card-bottom,
+.app.dark .document-reading-progress {
+  color: #f3f3f3;
+}
+
+
+/* 자료실 카드의 읽기 진행률은 카드 내부에 표시 */
+.document-card .document-reading-progress {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  transform: none !important;
+  width: 100%;
+  margin-top: 14px;
+  box-sizing: border-box;
+}
+
+/* 읽기 화면 상단 진행률 바는 읽기 화면에서만 사용 */
+.reader > .reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.reader > .reader-content {
+  padding-top: 75px;
+}
+
+/* 전체 삭제 버튼 */
+
+.delete-all-button {
+  padding: 10px 16px;
+  border: 1px solid #d8a3a3;
+  border-radius: 8px;
+  background: transparent;
+  color: #b42318;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.delete-all-button:hover:not(:disabled) {
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.delete-all-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 선택 기능 */
+.bulk-actions {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: 8px;
+margin: 16px 0;
+}
+
+.bulk-selection-count {
+font-size: 14px;
+color: var(--text-color, #555);
+margin-right: auto;
+}
+
+.bulk-action-button,
+.bulk-delete-button {
+padding: 9px 14px;
+border: 1px solid var(--border-color, #ddd);
+border-radius: 8px;
+background: var(--card-background, #f8f8f6);
+color: var(--text-color, #222);
+font: inherit;
+cursor: pointer;
+}
+
+.bulk-delete-button {
+border-color: #d8a3a3;
+color: #b42318;
+}
+
+.bulk-action-button:disabled,
+.bulk-delete-button:disabled {
+opacity: 0.45;
+cursor: not-allowed;
+}
+
+.document-card.selection-mode {
+cursor: pointer;
+}
+
+.document-card.is-selected {
+outline: 2px solid #6b8afd;
+outline-offset: 2px;
+}
+
+.document-card-type-area {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.document-select-checkbox {
+width: 18px;
+height: 18px;
+accent-color: #5276e8;
+cursor: pointer;
+}
+
+/* 여러 자료 선택 모드 */
+.document-card.selection-mode {
+cursor: pointer;
+transition:
+outline-color 0.2s ease,
+background-color 0.2s ease,
+transform 0.2s ease;
+}
+
+.document-card.selection-mode:hover {
+transform: translateY(-2px);
+}
+
+.document-card.is-selected {
+outline: 2px solid #5276e8;
+outline-offset: 2px;
+background-color: rgba(82, 118, 232, 0.06);
+}
+
+.document-select-checkbox {
+width: 18px;
+height: 18px;
+flex-shrink: 0;
+accent-color: #5276e8;
+cursor: pointer;
+}
+
+.bulk-actions {
+display: flex;
+align-items: center;
+flex-wrap: wrap;
+gap: 8px;
+}
+
+.bulk-selection-count {
+font-weight: 600;
+}
+
+.bulk-action-button,
+.bulk-delete-button {
+transition:
+background-color 0.2s ease,
+border-color 0.2s ease;
+}
+
+.bulk-action-button:hover:not(:disabled) {
+background-color: rgba(127, 127, 127, 0.1);
+}
+
+.bulk-delete-button:hover:not(:disabled) {
+background-color: rgba(180, 35, 24, 0.08);
+}
+
