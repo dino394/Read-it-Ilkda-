@@ -1,13 +1,23 @@
 
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import * as cheerio from "cheerio";
+import { Pool } from "pg";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { authMiddleware } from "./authMiddleware.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
-const allowedOrigin = process.env.FRONTEND_URL;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 
 const MAX_REDIRECTS = 5;
@@ -268,6 +278,267 @@ async function fetchPublicHtml(initialUrl) {
   throw new Error("웹페이지를 가져오지 못했습니다.");
 }
 
+app.get("/api/db-test", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+
+    res.json({
+      success: true,
+      message: "PostgreSQL 연결 성공!",
+      time: result.rows[0].now,
+    });
+  } catch (error) {
+    console.error("PostgreSQL 연결 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "PostgreSQL 연결에 실패했습니다.",
+    });
+  }
+});
+
+app.post("/api/auth/signup", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "이메일을 입력해 주세요.",
+      });
+    }
+
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "비밀번호는 8자 이상이어야 합니다.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [normalizedEmail]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "이미 가입된 이메일입니다.",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      `
+      INSERT INTO users (email, password_hash)
+      VALUES ($1, $2)
+      RETURNING id, email, created_at
+      `,
+      [normalizedEmail, passwordHash]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "회원가입이 완료되었습니다.",
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error("회원가입 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "회원가입 중 오류가 발생했습니다.",
+    });
+  }
+});
+console.log(
+  "JWT_SECRET 확인:",
+  process.env.JWT_SECRET ? "설정됨" : "설정되지 않음"
+);
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. 이메일 확인
+    if (typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "이메일을 입력해 주세요.",
+      });
+    }
+
+    // 2. 비밀번호 확인
+    if (typeof password !== "string" || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "비밀번호를 입력해 주세요.",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 3. 이메일로 사용자 찾기
+    const result = await pool.query(
+      `
+      SELECT id, email, password_hash, created_at
+      FROM users
+      WHERE email = $1
+      `,
+      [normalizedEmail]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "이메일 또는 비밀번호가 올바르지 않습니다.",
+      });
+    }
+
+    const user = result.rows[0];
+
+    // 4. 입력한 비밀번호와 DB의 암호화된 비밀번호 비교
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "이메일 또는 비밀번호가 올바르지 않습니다.",
+      });
+    }
+
+    // 5. 로그인 성공
+        const token = jwt.sign(
+          {
+            userId: user.id,
+            email: user.email,
+          },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "7d",
+          }
+        );
+
+        console.log("JWT 생성 성공");
+
+        res.json({
+          success: true,
+          message: "로그인에 성공했습니다.",
+          token: token,
+          user: {
+            id: user.id,
+            email: user.email,
+            created_at: user.created_at,
+          },
+        });
+          } catch (error) {
+            console.error("로그인 실패:", error);
+
+            res.status(500).json({
+              success: false,
+              message: "로그인 중 오류가 발생했습니다.",
+            });
+          }
+        });
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, email, created_at FROM users ORDER BY created_at DESC"
+    );
+
+    res.json({
+      success: true,
+      users: result.rows,
+    });
+  } catch (error) {
+    console.error("사용자 조회 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "사용자를 불러오지 못했습니다.",
+    });
+  }
+});
+
+app.post("/api/documents", authMiddleware, async (req, res) => {
+  try {
+    const {
+      title,
+      content,
+      type,
+      url,
+      is_read,
+      is_favorite,
+    } = req.body;
+
+    // 필수 항목 확인
+    if (
+      typeof title !== "string" ||
+      !title.trim() ||
+      typeof content !== "string" ||
+      !["text", "file", "web"].includes(type)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "문서 제목, 내용, 유형을 확인해 주세요.",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      INSERT INTO documents (
+        user_id,
+        title,
+        content,
+        type,
+        url,
+        is_read,
+        is_favorite
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING
+        id,
+        title,
+        content,
+        type,
+        url,
+        is_read,
+        is_favorite,
+        created_at,
+        updated_at
+      `,
+      [
+        req.user.userId,
+        title.trim(),
+        content,
+        type,
+        typeof url === "string" ? url : null,
+        typeof is_read === "boolean" ? is_read : false,
+        typeof is_favorite === "boolean" ? is_favorite : false,
+      ]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "문서가 저장되었습니다.",
+      document: result.rows[0],
+    });
+  } catch (error) {
+    console.error("문서 저장 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "문서를 저장하지 못했습니다.",
+    });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -389,7 +660,329 @@ app.post("/api/fetch", async (req, res) => {
     });
   }
 });
+app.get("/api/auth/me", authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT id, email, created_at
+      FROM users
+      WHERE id = $1
+      `,
+      [req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "사용자를 찾을 수 없습니다.",
+      });
+    }
+
+    res.json({
+      success: true,
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error("사용자 정보 조회 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "사용자 정보를 불러오지 못했습니다.",
+    });
+  }
+});
+
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`읽다 서버 실행: 포트 ${PORT}`);
 });
+
+app.get("/api/documents", authMiddleware, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        title,
+        content,
+        type,
+        url,
+        is_read,
+        is_favorite,
+        created_at,
+        updated_at
+      FROM documents
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      `,
+      [req.user.userId]
+    );
+
+    res.json({
+      success: true,
+      documents: result.rows,
+    });
+  } catch (error) {
+    console.error("문서 조회 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "문서를 불러오지 못했습니다.",
+    });
+  }
+});
+
+
+app.put("/api/documents/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      content,
+      type,
+      url,
+      is_read,
+      is_favorite,
+    } = req.body;
+
+    if (
+      typeof title !== "string" ||
+      !title.trim() ||
+      typeof content !== "string" ||
+      !["text", "file", "web"].includes(type) ||
+      (url !== undefined && url !== null && typeof url !== "string") ||
+      (is_read !== undefined && typeof is_read !== "boolean") ||
+      (is_favorite !== undefined && typeof is_favorite !== "boolean")
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "수정할 문서 정보를 확인해 주세요.",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      UPDATE documents
+      SET
+        title = $1,
+        content = $2,
+        type = $3,
+        url = $4,
+        is_read = $5,
+        is_favorite = $6,
+        updated_at = NOW()
+      WHERE id = $7 AND user_id = $8
+      RETURNING
+        id,
+        title,
+        content,
+        type,
+        url,
+        is_read,
+        is_favorite,
+        created_at,
+        updated_at
+      `,
+      [
+        title.trim(),
+        content,
+        type,
+        url ?? null,
+        is_read ?? false,
+        is_favorite ?? false,
+        id,
+        req.user.userId,
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "문서를 찾을 수 없거나 수정 권한이 없습니다.",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "문서가 수정되었습니다.",
+      document: result.rows[0],
+    });
+  } catch (error) {
+    console.error("문서 수정 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "문서를 수정하지 못했습니다.",
+    });
+  }
+});
+
+
+app.delete("/api/documents/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `
+      DELETE FROM documents
+      WHERE id = $1 AND user_id = $2
+      RETURNING id
+      `,
+      [id, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "문서를 찾을 수 없거나 삭제 권한이 없습니다.",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "문서가 삭제되었습니다.",
+      id: result.rows[0].id,
+    });
+  } catch (error) {
+    console.error("문서 삭제 실패:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "문서를 삭제하지 못했습니다.",
+    });
+  }
+});
+
+app.get(
+  "/api/documents/:id/progress",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const result = await pool.query(
+        `
+        SELECT
+          rp.position,
+          rp.progress,
+          rp.completed,
+          rp.updated_at
+        FROM reading_progress rp
+        JOIN documents d
+          ON d.id = rp.document_id
+        WHERE d.id = $1
+          AND d.user_id = $2
+        `,
+        [id, req.user.userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.json({
+          success: true,
+          progress: {
+            position: 0,
+            progress: 0,
+            completed: false,
+          },
+        });
+      }
+
+      res.json({
+        success: true,
+        progress: result.rows[0],
+      });
+    } catch (error) {
+      console.error("독서 진행률 조회 실패:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "독서 진행률을 불러오지 못했습니다.",
+      });
+    }
+  }
+);
+
+app.put(
+  "/api/documents/:id/progress",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { position, progress, completed } = req.body;
+
+      if (
+        typeof position !== "number" ||
+        !Number.isFinite(position) ||
+        position < 0 ||
+        typeof progress !== "number" ||
+        !Number.isInteger(progress) ||
+        progress < 0 ||
+        progress > 100 ||
+        typeof completed !== "boolean"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "독서 진행률 정보를 확인해 주세요.",
+        });
+      }
+
+      // 해당 문서가 현재 로그인한 사용자의 것인지 확인
+      const documentResult = await pool.query(
+        `
+        SELECT id
+        FROM documents
+        WHERE id = $1 AND user_id = $2
+        `,
+        [id, req.user.userId]
+      );
+
+      if (documentResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "문서를 찾을 수 없거나 접근 권한이 없습니다.",
+        });
+      }
+
+      // 기존 진행률이 있으면 갱신하고, 없으면 새로 저장
+      const result = await pool.query(
+        `
+        INSERT INTO reading_progress (
+          document_id,
+          position,
+          progress,
+          completed,
+          updated_at
+        )
+        VALUES ($1, $2, $3, $4, NOW())
+        ON CONFLICT (document_id)
+        DO UPDATE SET
+          position = EXCLUDED.position,
+          progress = EXCLUDED.progress,
+          completed = EXCLUDED.completed,
+          updated_at = NOW()
+        RETURNING
+          document_id,
+          position,
+          progress,
+          completed,
+          updated_at
+        `,
+        [id, position, progress, completed]
+      );
+
+      res.json({
+        success: true,
+        message: "독서 진행률이 저장되었습니다.",
+        progress: result.rows[0],
+      });
+    } catch (error) {
+      console.error("독서 진행률 저장 실패:", error);
+
+      res.status(500).json({
+        success: false,
+        message: "독서 진행률을 저장하지 못했습니다.",
+      });
+    }
+  }
+);
+
