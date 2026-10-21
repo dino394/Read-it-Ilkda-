@@ -24,14 +24,30 @@ const MAX_REDIRECTS = 5;
 const MAX_HTML_SIZE = 2 * 1024 * 1024;
 const REQUEST_TIMEOUT = 10000;
 
-
-const allowedOrigin = process.env.FRONTEND_URL;
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+];
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(
+          new Error(
+            "허용되지 않은 CORS origin입니다."
+          )
+        );
+      }
+    },
   })
 );
+
 app.use(express.json({ limit: "10kb" }));
 
 // IPv4 사설 주소, 루프백, 링크 로컬, 예약된 주소 차단
