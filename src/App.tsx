@@ -1,3 +1,7 @@
+import {
+  getDocuments,
+  createDocument,
+} from "./api/documents";
 import { useEffect, useState } from "react";
 
 import "./App.css";
@@ -58,6 +62,7 @@ function isDocumentArray(
 }
 
 function App() {
+  
    const [isLoggedIn, setIsLoggedIn] =
     useState(
       Boolean(
@@ -66,6 +71,30 @@ function App() {
         )
       )
     );
+    useEffect(() => {
+  if (!isLoggedIn) {
+    return;
+  }
+
+  async function loadCloudDocuments() {
+    try {
+      const data = await getDocuments();
+
+      console.log(
+        "서버에서 불러온 문서:",
+        data.documents
+      );
+      setDocuments(data.documents);
+    } catch (error) {
+      console.error(
+        "서버 문서를 불러오지 못했습니다:",
+        error
+      );
+    }
+  }
+
+  loadCloudDocuments();
+}, [isLoggedIn]);
 
   const [documents, setDocuments] =
     useState<Document[]>(() => {
@@ -310,28 +339,54 @@ function App() {
     }
   };
 
-  const handleAddText = (
+  
+  const handleAddText = async (
     title: string,
     content: string
   ) => {
-    const newDocument: Document = {
-      id: crypto.randomUUID(),
-      title,
-      content,
-      type: "text",
-      createdAt:
-        new Date().toISOString(),
-      isRead: false,
-      isFavorite: false,
-    };
+    try {
+      const data = await createDocument({
+        title,
+        content,
+        type: "text",
+        isRead: false,
+        isFavorite: false,
+      });
 
-    setDocuments(
-      (currentDocuments) => [
+      const saved =
+        data.document as unknown as Record<
+          string,
+          unknown
+        >;
+
+      const newDocument: Document = {
+        id: String(saved.id),
+        title: String(saved.title),
+        content: String(saved.content),
+        type: saved.type as Document["type"],
+        ...(typeof saved.url === "string"
+          ? { url: saved.url }
+          : {}),
+        createdAt: String(saved.created_at),
+        isRead: Boolean(saved.is_read),
+        isFavorite: Boolean(saved.is_favorite),
+      };
+
+      setDocuments((currentDocuments) => [
         newDocument,
         ...currentDocuments,
-      ]
-    );
+      ]);
+    } catch (error) {
+      console.error("문서 저장 실패:", error);
+
+      alert(
+        error instanceof Error
+          ? `문서 저장 실패: ${error.message}`
+          : "문서를 서버에 저장하지 못했습니다."
+      );
+    }
   };
+
 
   const handleAddFile = (
     event: React.ChangeEvent<HTMLInputElement>
