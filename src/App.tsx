@@ -1,6 +1,8 @@
 import {
   getDocuments,
   createDocument,
+  updateDocument,
+  deleteDocument,
 } from "./api/documents";
 import { useEffect, useState } from "react";
 
@@ -214,53 +216,71 @@ async function loadCloudDocuments() {
     URL.revokeObjectURL(url);
   };
 
-  const handleAddUrl = (
-    url: string,
-    title: string,
-    content: string
-  ) => {
-    const normalizedUrl =
-      new URL(url).href;
+  const handleAddUrl = async (
+  url: string,
+  title: string,
+  content: string
+) => {
+  let normalizedUrl: string;
 
-    const isDuplicate =
-      documents.some((document) => {
-        if (!document.url) {
-          return false;
-        }
+  try {
+    normalizedUrl = new URL(url).href;
+  } catch {
+    alert("올바른 웹페이지 주소를 입력해 주세요.");
+    return;
+  }
 
-        return (
-          document.url ===
-          normalizedUrl
-        );
-      });
+  const isDuplicate = documents.some(
+    (document) => document.url === normalizedUrl
+  );
 
-    if (isDuplicate) {
-      alert(
-        "이미 자료실에 저장된 웹페이지입니다."
-      );
+  if (isDuplicate) {
+    alert("이미 자료실에 저장된 웹페이지입니다.");
+    return;
+  }
 
-      return;
-    }
-
-    const newDocument: Document = {
-      id: crypto.randomUUID(),
+  try {
+    const data = await createDocument({
       title,
       content,
       type: "web",
       url: normalizedUrl,
-      createdAt:
-        new Date().toISOString(),
       isRead: false,
       isFavorite: false,
+    });
+
+    const saved = data.document as unknown as Record<
+      string,
+      unknown
+    >;
+
+    const newDocument: Document = {
+      id: String(saved.id),
+      title: String(saved.title),
+      content: String(saved.content),
+      type: saved.type as Document["type"],
+      ...(typeof saved.url === "string"
+        ? { url: saved.url }
+        : {}),
+      createdAt: String(saved.created_at),
+      isRead: Boolean(saved.is_read),
+      isFavorite: Boolean(saved.is_favorite),
     };
 
-    setDocuments(
-      (previousDocuments) => [
-        newDocument,
-        ...previousDocuments,
-      ]
+    setDocuments((currentDocuments) => [
+      newDocument,
+      ...currentDocuments,
+    ]);
+  } catch (error) {
+    console.error("웹페이지 저장 실패:", error);
+
+    alert(
+      error instanceof Error
+        ? `웹페이지 저장 실패: ${error.message}`
+        : "웹페이지를 서버에 저장하지 못했습니다."
     );
-  };
+  }
+};
 
   const handleImportBackup = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -418,216 +438,282 @@ async function loadCloudDocuments() {
 
 
   const handleAddFile = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file =
-      event.target.files?.[0];
+  event: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = event.target.files?.[0];
 
-    if (!file) {
+  if (!file) {
+    return;
+  }
+
+  const fileName = file.name.toLowerCase();
+
+  const isTextFile =
+    fileName.endsWith(".txt") ||
+    fileName.endsWith(".md");
+
+  if (!isTextFile) {
+    alert("현재는 TXT와 MD 파일만 추가할 수 있습니다.");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = async () => {
+    if (typeof reader.result !== "string") {
+      alert("파일을 읽을 수 없습니다.");
       return;
     }
 
-    const fileName =
-      file.name.toLowerCase();
-
-    const isTextFile =
-      fileName.endsWith(".txt") ||
-      fileName.endsWith(".md");
-
-    if (!isTextFile) {
-      alert(
-        "현재는 TXT와 MD 파일만 추가할 수 있습니다."
-      );
-
-      event.target.value = "";
-
-      return;
-    }
-
-    const reader =
-      new FileReader();
-
-    reader.onload = () => {
-      if (
-        typeof reader.result !==
-        "string"
-      ) {
-        alert(
-          "파일을 읽을 수 없습니다."
-        );
-
-        return;
-      }
-
-      const newDocument: Document = {
-        id: crypto.randomUUID(),
-        title: file.name.replace(
-          /\.(txt|md)$/i,
-          ""
-        ),
+    try {
+      const data = await createDocument({
+        title: file.name.replace(/\.(txt|md)$/i, ""),
         content: reader.result,
         type: "file",
-        createdAt:
-          new Date().toISOString(),
         isRead: false,
         isFavorite: false,
+      });
+
+      const saved = data.document as unknown as Record<
+        string,
+        unknown
+      >;
+
+      const newDocument: Document = {
+        id: String(saved.id),
+        title: String(saved.title),
+        content: String(saved.content),
+        type: saved.type as Document["type"],
+        ...(typeof saved.url === "string"
+          ? { url: saved.url }
+          : {}),
+        createdAt: String(saved.created_at),
+        isRead: Boolean(saved.is_read),
+        isFavorite: Boolean(saved.is_favorite),
       };
 
-      setDocuments(
-        (currentDocuments) => [
-          newDocument,
-          ...currentDocuments,
-        ]
-      );
-    };
+      setDocuments((currentDocuments) => [
+        newDocument,
+        ...currentDocuments,
+      ]);
+    } catch (error) {
+      console.error("파일 저장 실패:", error);
 
-    reader.onerror = () => {
       alert(
-        "파일을 읽는 중 문제가 발생했습니다."
+        error instanceof Error
+          ? `파일 저장 실패: ${error.message}`
+          : "파일을 서버에 저장하지 못했습니다."
       );
-    };
-
-    reader.readAsText(file);
-
-    event.target.value = "";
+    }
   };
 
-  const handleMarkAsRead = (
-    id: string
-  ) => {
-    setDocuments(
-      (currentDocuments) =>
-        currentDocuments.map(
-          (document) =>
-            document.id === id
-              ? {
-                  ...document,
-                  isRead: true,
-                }
-              : document
-        )
+  reader.onerror = () => {
+    alert("파일을 읽는 중 문제가 발생했습니다.");
+  };
+
+  reader.readAsText(file);
+  event.target.value = "";
+};
+    
+
+  const handleMarkAsRead = async (
+  id: string
+) => {
+  const targetDocument = documents.find(
+    (document) => document.id === id
+  );
+
+  if (!targetDocument || targetDocument.isRead) {
+    return;
+  }
+
+  try {
+    await updateDocument(id, {
+      isRead: true,
+    });
+
+    setDocuments((currentDocuments) =>
+      currentDocuments.map((document) =>
+        document.id === id
+          ? {
+              ...document,
+              isRead: true,
+            }
+          : document
+      )
     );
-  };
+  } catch (error) {
+    console.error("읽음 상태 저장 실패:", error);
 
-  const handleToggleFavorite = (
-    id: string
-  ) => {
-    setDocuments(
-      (currentDocuments) =>
-        currentDocuments.map(
-          (document) =>
-            document.id === id
-              ? {
-                  ...document,
-                  isFavorite:
-                    !document.isFavorite,
-                }
-              : document
-        )
+    alert(
+      error instanceof Error
+        ? `읽음 상태 저장 실패: ${error.message}`
+        : "읽음 상태를 저장하지 못했습니다."
     );
-  };
+  }
+};
 
-  const handleEditDocument = (
-    id: string,
-    title: string,
-    content: string
-  ) => {
+  const handleToggleFavorite = async (
+  id: string
+) => {
+  const targetDocument = documents.find(
+    (document) => document.id === id
+  );
+
+  if (!targetDocument) {
+    return;
+  }
+
+  try {
+    await updateDocument(id, {
+      isFavorite: !targetDocument.isFavorite,
+    });
+
+    setDocuments((currentDocuments) =>
+      currentDocuments.map((document) =>
+        document.id === id
+          ? {
+              ...document,
+              isFavorite: !targetDocument.isFavorite,
+            }
+          : document
+      )
+    );
+  } catch (error) {
+    console.error("즐겨찾기 변경 실패:", error);
+
+    alert(
+      error instanceof Error
+        ? `즐겨찾기 변경 실패: ${error.message}`
+        : "즐겨찾기를 변경하지 못했습니다."
+    );
+  }
+};
+
+  const handleEditDocument = async (
+  id: string,
+  title: string,
+  content: string
+) => {
+  const targetDocument = documents.find(
+    (document) => document.id === id
+  );
+
+  if (!targetDocument) {
+    return;
+  }
+
+  try {
+    await updateDocument(id, {
+      title,
+      content,
+    });
+
     localStorage.removeItem(
       `read-it-position-${id}`
     );
 
-    setDocuments(
-      (currentDocuments) =>
-        currentDocuments.map(
-          (document) =>
-            document.id === id
-              ? {
-                  ...document,
-                  title,
-                  content,
-                }
-              : document
-        )
+    setDocuments((currentDocuments) =>
+      currentDocuments.map((document) =>
+        document.id === id
+          ? {
+              ...document,
+              title,
+              content,
+            }
+          : document
+      )
     );
-  };
+  } catch (error) {
+    console.error("문서 수정 실패:", error);
 
-  const handleDeleteAllDocuments =
-    () => {
-      if (documents.length === 0) {
-        alert(
-          "삭제할 자료가 없습니다."
-        );
+    alert(
+      error instanceof Error
+        ? `문서 수정 실패: ${error.message}`
+        : "문서를 수정하지 못했습니다."
+    );
+  }
+};
 
-        return;
-      }
+  const handleDeleteAllDocuments = async () => {
+  if (documents.length === 0) {
+    alert("삭제할 자료가 없습니다.");
+    return;
+  }
 
-      const confirmed =
-        window.confirm(
-          `저장된 자료 ${documents.length}개를 모두 삭제할까요?\n\n` +
-            "읽기 위치와 진행률도 함께 삭제됩니다.\n" +
-            "이 작업은 되돌릴 수 없습니다.\n\n" +
-            "삭제 전에 JSON 백업을 권장합니다."
-        );
+  const confirmed = window.confirm(
+    `저장된 자료 ${documents.length}개를 모두 삭제할까요?\n\n` +
+      "읽기 위치와 진행률도 함께 삭제됩니다.\n" +
+      "이 작업은 되돌릴 수 없습니다.\n\n" +
+      "삭제 전에 JSON 백업을 권장합니다."
+  );
 
-      if (!confirmed) {
-        return;
-      }
+  if (!confirmed) {
+    return;
+  }
 
-      documents.forEach((doc) => {
-        localStorage.removeItem(
-          `read-it-position-${doc.id}`
-        );
+  try {
+    await Promise.all(
+      documents.map((doc) => deleteDocument(doc.id))
+    );
 
-        localStorage.removeItem(
-          `read-it-progress-${doc.id}`
-        );
-
-        localStorage.removeItem(
-          `read-it-completed-${doc.id}`
-        );
-
-        localStorage.removeItem(
-          `read-it-reset-${doc.id}`
-        );
-      });
-
-      setSelectedDocumentId(null);
-
-      setDocuments([]);
-
-      alert(
-        "모든 자료를 삭제했습니다."
+    documents.forEach((doc) => {
+      localStorage.removeItem(
+        `read-it-position-${doc.id}`
       );
-    };
-
-  const handleDeleteDocument = (
-    id: string
-  ) => {
-    const targetDocument =
-      documents.find(
-        (document) =>
-          document.id === id
+      localStorage.removeItem(
+        `read-it-progress-${doc.id}`
       );
-
-    if (!targetDocument) {
-      return;
-    }
-
-    const confirmed =
-      window.confirm(
-        `"${targetDocument.title}" 자료를 삭제할까요?\n삭제한 자료는 복구할 수 없습니다.`
+      localStorage.removeItem(
+        `read-it-completed-${doc.id}`
       );
+      localStorage.removeItem(
+        `read-it-reset-${doc.id}`
+      );
+    });
 
-    if (!confirmed) {
-      return;
-    }
+    setSelectedDocumentId(null);
+    setDocuments([]);
 
-    setDocuments(
-      (currentDocuments) =>
-        currentDocuments.filter(
-          (document) =>
-            document.id !== id
-        )
+    alert("모든 자료를 삭제했습니다.");
+  } catch (error) {
+    console.error("전체 자료 삭제 실패:", error);
+
+    alert(
+      error instanceof Error
+        ? `전체 자료 삭제 실패: ${error.message}`
+        : "자료를 모두 삭제하지 못했습니다."
+    );
+  }
+};
+
+  const handleDeleteDocument = async (
+  id: string
+) => {
+  const targetDocument = documents.find(
+    (document) => document.id === id
+  );
+
+  if (!targetDocument) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `"${targetDocument.title}" 자료를 삭제할까요?\n삭제한 자료는 복구할 수 없습니다.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await deleteDocument(id);
+
+    setDocuments((currentDocuments) =>
+      currentDocuments.filter(
+        (document) => document.id !== id
+      )
     );
 
     localStorage.removeItem(
@@ -635,49 +721,70 @@ async function loadCloudDocuments() {
     );
 
     setSelectedDocumentId(null);
-  };
+  } catch (error) {
+    console.error("문서 삭제 실패:", error);
 
-  const handleDeleteMultipleDocuments =
-    (ids: string[]) => {
-      const idsToDelete =
-        new Set(ids);
+    alert(
+      error instanceof Error
+        ? `문서 삭제 실패: ${error.message}`
+        : "문서를 삭제하지 못했습니다."
+    );
+  }
+};
 
-      idsToDelete.forEach((id) => {
-        localStorage.removeItem(
-          `read-it-position-${id}`
-        );
+const handleDeleteMultipleDocuments = async (
+  ids: string[]
+) => {
+  const idsToDelete = new Set(ids);
 
-        localStorage.removeItem(
-          `read-it-progress-${id}`
-        );
+  try {
+    await Promise.all(
+      [...idsToDelete].map((id) =>
+        deleteDocument(id)
+      )
+    );
 
-        localStorage.removeItem(
-          `read-it-completed-${id}`
-        );
-
-        localStorage.removeItem(
-          `read-it-reset-${id}`
-        );
-      });
-
-      setDocuments(
-        (previous) =>
-          previous.filter(
-            (document) =>
-              !idsToDelete.has(
-                document.id
-              )
-          )
+    idsToDelete.forEach((id) => {
+      localStorage.removeItem(
+        `read-it-position-${id}`
       );
 
-      setSelectedDocumentId(
-        (previous) =>
-          previous &&
-          idsToDelete.has(previous)
-            ? null
-            : previous
+      localStorage.removeItem(
+        `read-it-progress-${id}`
       );
-    };
+
+      localStorage.removeItem(
+        `read-it-completed-${id}`
+      );
+
+      localStorage.removeItem(
+        `read-it-reset-${id}`
+      );
+    });
+
+    setDocuments((previous) =>
+      previous.filter(
+        (document) =>
+          !idsToDelete.has(document.id)
+      )
+    );
+
+    setSelectedDocumentId((previous) =>
+      previous && idsToDelete.has(previous)
+        ? null
+        : previous
+    );
+  } catch (error) {
+    console.error("여러 문서 삭제 실패:", error);
+
+    alert(
+      error instanceof Error
+        ? `문서 삭제 실패: ${error.message}`
+        : "문서를 삭제하지 못했습니다."
+    );
+  }
+};
+
   if (!isLoggedIn) {
     return (
       <Login
