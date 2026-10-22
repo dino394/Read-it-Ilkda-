@@ -76,22 +76,51 @@ function App() {
     return;
   }
 
-  async function loadCloudDocuments() {
-    try {
-      const data = await getDocuments();
+  
+async function loadCloudDocuments() {
+  try {
+    const data = await getDocuments();
 
-      console.log(
-        "서버에서 불러온 문서:",
-        data.documents
-      );
-      setDocuments(data.documents);
-    } catch (error) {
-      console.error(
-        "서버 문서를 불러오지 못했습니다:",
-        error
-      );
-    }
+    console.log(
+      "서버에서 불러온 문서:",
+      data.documents
+    );
+
+    const cloudDocuments: Document[] =
+      data.documents.map((doc) => {
+        const saved = doc as unknown as Record<
+          string,
+          unknown
+        >;
+
+        return {
+          id: String(saved.id),
+          title: String(saved.title),
+          content: String(saved.content),
+          type: saved.type as Document["type"],
+          ...(typeof saved.url === "string"
+            ? { url: saved.url }
+            : {}),
+          createdAt: String(
+            saved.createdAt ?? saved.created_at
+          ),
+          isRead: Boolean(
+            saved.isRead ?? saved.is_read
+          ),
+          isFavorite: Boolean(
+            saved.isFavorite ?? saved.is_favorite
+          ),
+        };
+      });
+
+    setDocuments(cloudDocuments);
+  } catch (error) {
+    console.error(
+      "서버 문서를 불러오지 못했습니다:",
+      error
+    );
   }
+}
 
   loadCloudDocuments();
 }, [isLoggedIn]);
