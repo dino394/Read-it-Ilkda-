@@ -47,7 +47,15 @@ app.use(
     },
   })
 );
-
+app.use(
+  cors({
+    origin: [
+      process.env.FRONTEND_URL,
+      "https://read-it-ilkda.netlify.app",
+      "http://localhost:5173",
+    ].filter(Boolean),
+  })
+);
 app.use(express.json({ limit: "10kb" }));
 
 // IPv4 사설 주소, 루프백, 링크 로컬, 예약된 주소 차단
