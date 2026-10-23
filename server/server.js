@@ -756,10 +756,10 @@ app.get("/api/documents", authMiddleware, async (req, res) => {
   }
 });
 
-
 app.put("/api/documents/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
+
     const {
       title,
       content,
@@ -769,18 +769,77 @@ app.put("/api/documents/:id", authMiddleware, async (req, res) => {
       is_favorite,
     } = req.body;
 
+    const existingResult = await pool.query(
+      `
+      SELECT
+        title,
+        content,
+        type,
+        url,
+        is_read,
+        is_favorite
+      FROM documents
+      WHERE id = $1 AND user_id = $2
+      `,
+      [id, req.user.userId]
+    );
+
+    if (existingResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "문서를 찾을 수 없거나 수정 권한이 없습니다.",
+      });
+    }
+
+    const existing = existingResult.rows[0];
+
+    const nextTitle =
+      title !== undefined
+        ? title
+        : existing.title;
+
+    const nextContent =
+      content !== undefined
+        ? content
+        : existing.content;
+
+    const nextType =
+      type !== undefined
+        ? type
+        : existing.type;
+
+    const nextUrl =
+      url !== undefined
+        ? url
+        : existing.url;
+
+    const nextIsRead =
+      is_read !== undefined
+        ? is_read
+        : existing.is_read;
+
+    const nextIsFavorite =
+      is_favorite !== undefined
+        ? is_favorite
+        : existing.is_favorite;
+
     if (
-      typeof title !== "string" ||
-      !title.trim() ||
-      typeof content !== "string" ||
-      !["text", "file", "web"].includes(type) ||
-      (url !== undefined && url !== null && typeof url !== "string") ||
-      (is_read !== undefined && typeof is_read !== "boolean") ||
-      (is_favorite !== undefined && typeof is_favorite !== "boolean")
+      typeof nextTitle !== "string" ||
+      !nextTitle.trim() ||
+      typeof nextContent !== "string" ||
+      !["text", "file", "web"].includes(
+        nextType
+      ) ||
+      (nextUrl !== null &&
+        typeof nextUrl !== "string") ||
+      typeof nextIsRead !== "boolean" ||
+      typeof nextIsFavorite !== "boolean"
     ) {
       return res.status(400).json({
         success: false,
-        message: "수정할 문서 정보를 확인해 주세요.",
+        message:
+          "수정할 문서 정보를 확인해 주세요.",
       });
     }
 
@@ -808,23 +867,16 @@ app.put("/api/documents/:id", authMiddleware, async (req, res) => {
         updated_at
       `,
       [
-        title.trim(),
-        content,
-        type,
-        url ?? null,
-        is_read ?? false,
-        is_favorite ?? false,
+        nextTitle.trim(),
+        nextContent,
+        nextType,
+        nextUrl,
+        nextIsRead,
+        nextIsFavorite,
         id,
         req.user.userId,
       ]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "문서를 찾을 수 없거나 수정 권한이 없습니다.",
-      });
-    }
 
     res.json({
       success: true,
