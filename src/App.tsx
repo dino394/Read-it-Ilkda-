@@ -157,6 +157,12 @@ async function loadCloudDocuments() {
     setSelectedDocumentId,
   ] = useState<string | null>(null);
 
+  const handleLogout = () => {
+  localStorage.removeItem("read-it-token");
+  setIsLoggedIn(false);
+  setSelectedDocumentId(null);
+};
+
   const [darkMode, setDarkMode] =
     useState(false);
 
@@ -807,6 +813,7 @@ const handleDeleteMultipleDocuments = async (
             (value) => !value
           )
         }
+        onLogout={handleLogout}
       />
 
       {selectedDocument ? (

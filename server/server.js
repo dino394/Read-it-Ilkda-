@@ -332,12 +332,19 @@ app.post("/api/auth/signup", async (req, res) => {
       });
     }
 
-    if (typeof password !== "string" || password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: "비밀번호는 8자 이상이어야 합니다.",
-      });
-    }
+    
+if (
+  typeof password !== "string" ||
+  password.length < 8 ||
+  Buffer.byteLength(password, "utf8") > 72
+) {
+  return res.status(400).json({
+    success: false,
+    message:
+      "비밀번호는 8자 이상이어야 하며, UTF-8 기준 72바이트 이하여야 합니다.",
+  });
+}
+
 
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -393,6 +400,19 @@ app.post("/api/auth/login", async (req, res) => {
         message: "이메일을 입력해 주세요.",
       });
     }
+    //이메일 형식 검증
+
+const normalizedEmail = email.trim().toLowerCase();
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+if (!emailPattern.test(normalizedEmail)) {
+  return res.status(400).json({
+    success: false,
+    message: "올바른 이메일 형식을 입력해 주세요.",
+  });
+}
+
 
     // 2. 비밀번호 확인
     if (typeof password !== "string" || !password) {
@@ -402,7 +422,7 @@ app.post("/api/auth/login", async (req, res) => {
       });
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+   
 
     // 3. 이메일로 사용자 찾기
     const result = await pool.query(

@@ -49,12 +49,26 @@ export async function updateDocument(
     {
       method: "PUT",
       body: JSON.stringify({
-        title: document.title,
-        content: document.content,
-        type: document.type,
-        url: document.url ?? null,
-        is_read: document.isRead,
-        is_favorite: document.isFavorite,
+        ...(document.title !== undefined
+          ? { title: document.title }
+          : {}),
+        ...(document.content !== undefined
+          ? { content: document.content }
+          : {}),
+        ...(document.type !== undefined
+          ? { type: document.type }
+          : {}),
+        ...(document.url !== undefined
+          ? { url: document.url }
+          : {}),
+        ...(document.isRead !== undefined
+          ? { is_read: document.isRead }
+          : {}),
+        ...(document.isFavorite !== undefined
+          ? {
+              is_favorite: document.isFavorite,
+            }
+          : {}),
       }),
     }
   );
