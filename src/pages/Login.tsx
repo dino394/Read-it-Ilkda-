@@ -4,10 +4,12 @@ import { login } from "../api/auth";
 
 interface LoginProps {
   onLoginSuccess: () => void;
+  onSwitchToSignup: () => void;
 }
 
 function Login({
   onLoginSuccess,
+  onSwitchToSignup,
 }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] =
@@ -116,6 +118,13 @@ function Login({
               ? "로그인 중..."
               : "로그인"}
           </button>
+          <button
+                type="button"
+                onClick={onSwitchToSignup}
+                disabled={loading}
+                >
+                회원가입
+                </button>
         </form>
       </div>
     </main>

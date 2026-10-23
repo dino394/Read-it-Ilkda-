@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 import Login from "./pages/Login";
+import Signup from "./components/Signup";
 
 import Header from "./components/Header";
 import Home from "./pages/Home";
@@ -64,19 +65,20 @@ function isDocumentArray(
 }
 
 function App() {
-  
-   const [isLoggedIn, setIsLoggedIn] =
+  const [isLoggedIn, setIsLoggedIn] =
     useState(
       Boolean(
-        localStorage.getItem(
-          "read-it-token"
-        )
+        localStorage.getItem("read-it-token")
       )
     );
+
+  const [showSignup, setShowSignup] =
+    useState(false);
     useEffect(() => {
   if (!isLoggedIn) {
     return;
   }
+
 
   
 async function loadCloudDocuments() {
@@ -114,6 +116,7 @@ async function loadCloudDocuments() {
           ),
         };
       });
+
 
     setDocuments(cloudDocuments);
   } catch (error) {
@@ -791,11 +794,27 @@ const handleDeleteMultipleDocuments = async (
   }
 };
 
-  if (!isLoggedIn) {
+    if (!isLoggedIn) {
+    if (showSignup) {
+      return (
+        <Signup
+          onSignupSuccess={() =>
+            setShowSignup(false)
+          }
+          onSwitchToLogin={() =>
+            setShowSignup(false)
+          }
+        />
+      );
+    }
+
     return (
       <Login
         onLoginSuccess={() =>
           setIsLoggedIn(true)
+        }
+        onSwitchToSignup={() =>
+          setShowSignup(true)
         }
       />
     );
