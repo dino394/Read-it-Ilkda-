@@ -1,0 +1,279 @@
+
+/* 문서 카드 기본 스타일 */
+.document-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e8e7e2;
+  border-radius: 16px;
+  color: #242421;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.document-card:hover {
+  border-color: #d3d1c7;
+  box-shadow: 0 8px 24px rgba(35, 35, 28, 0.06);
+  transform: translateY(-2px);
+}
+
+.document-card.is-selected {
+  border-color: #77776d;
+  box-shadow: 0 0 0 2px rgba(119, 119, 109, 0.12);
+}
+
+.document-card.is-read .document-card-title {
+  color: #777771;
+}
+
+/* 카드 상단 */
+.document-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.document-card-type-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.document-type {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #f3f2ed;
+  color: #66665e;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.document-type-web {
+  background: #eef3ee;
+  color: #54715a;
+}
+
+.document-type-file {
+  background: #f1eff7;
+  color: #71658d;
+}
+
+.document-type-text {
+  background: #f5f0e8;
+  color: #8a7352;
+}
+
+/* 카드 액션 버튼 */
+.document-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.document-card-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #77776f;
+  font: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.document-card-actions button:hover {
+  background: #f3f2ed;
+  color: #242421;
+}
+
+.document-card-actions .favorite-button.is-favorite {
+  color: #b58a43;
+}
+
+/* 제목과 미리보기 */
+.document-card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0 0 10px;
+  color: #292923;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: -0.4px;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.document-card-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 4.8em;
+  margin: 0 0 22px;
+  color: #85857d;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* 읽기 상태와 날짜 */
+.document-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  margin-bottom: 18px;
+}
+
+.reading-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #f3f2ed;
+  color: #77776f;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reading-status-reading {
+  background: #f5f0e5;
+  color: #94733b;
+}
+
+.reading-status-completed {
+  background: #eaf2eb;
+  color: #527459;
+}
+
+.document-card-date {
+  color: #a09f97;
+  font-size: 12px;
+}
+
+/* 읽기 진행률 */
+.document-reading-progress {
+  padding-top: 16px;
+  border-top: 1px solid #f0efe9;
+}
+
+.document-reading-progress-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+  color: #929188;
+  font-size: 12px;
+}
+
+.document-reading-progress-info span:last-child {
+  color: #5f5f56;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.document-reading-progress-track {
+  overflow: hidden;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: #eeede7;
+}
+
+.document-reading-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #858577;
+  transition: width 0.3s ease;
+}
+
+/* 여러 자료 선택 */
+.document-select-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #55554b;
+  cursor: pointer;
+}
+
+.document-card.selection-mode {
+  cursor: pointer;
+}
+
+/* 모바일 */
+@media (max-width: 480px) {
+  .document-card {
+    padding: 18px;
+    border-radius: 13px;
+  }
+
+  .document-card-title {
+    font-size: 16px;
+  }
+
+  .document-card-preview {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .document-card,
+  .document-card-actions button,
+  .document-reading-progress-fill {
+    transition: none;
+  }
+
+  .document-card:hover {
+    transform: none;
+  }
+}
+
+
+
+/* 문서 목록 레이아웃 */
+.document-list {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, 280px), 1fr)
+  );
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* 카드 높이와 내부 배치 통일 */
+.document-list .document-card {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* 작은 화면에서는 카드 간격 축소 */
+@media (max-width: 600px) {
+  .document-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}

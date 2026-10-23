@@ -1,0 +1,155 @@
+
+/* 로그인 페이지 전체 */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background: #f7f7f4;
+  color: #242421;
+  box-sizing: border-box;
+  font-family:
+    -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Noto Sans KR",
+    sans-serif;
+}
+
+/* 로그인 카드 */
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 44px 40px;
+  background: #ffffff;
+  border: 1px solid #e8e7e2;
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(30, 30, 25, 0.04);
+  box-sizing: border-box;
+}
+
+/* 로고와 소개 */
+.login-header {
+  margin-bottom: 36px;
+  text-align: center;
+}
+
+.login-header h1 {
+  margin: 0 0 14px;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -2px;
+}
+
+.login-header p {
+  margin: 0;
+  color: #777771;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* 로그인 폼 */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-form label {
+  margin-top: 8px;
+  color: #383832;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.login-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #deded7;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #242421;
+  font: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-form input::placeholder {
+  color: #aaa9a2;
+}
+
+.login-form input:focus {
+  border-color: #77776d;
+  box-shadow: 0 0 0 3px rgba(100, 100, 85, 0.1);
+}
+
+/* 공통 버튼 */
+.login-form button {
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid #242421;
+  border-radius: 10px;
+  background: #242421;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-form button:hover:not(:disabled) {
+  background: #41413b;
+}
+
+.login-form button:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 두 번째 버튼인 회원가입 */
+.login-form button[type="button"] {
+  margin-top: 0;
+  border-color: #e3e2dc;
+  background: #ffffff;
+  color: #393933;
+}
+
+.login-form button[type="button"]:hover:not(:disabled) {
+  background: #f5f5f1;
+}
+
+/* 오류 메시지 */
+.login-form .login-error {
+  margin: 4px 0;
+  color: #c43d36;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 모바일 화면 */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 20px 16px;
+  }
+
+  .login-container {
+    padding: 36px 24px;
+    border-radius: 16px;
+  }
+
+  .login-header h1 {
+    font-size: 32px;
+  }
+}

@@ -1,0 +1,31 @@
+
+.logout-button {
+  padding: 9px 16px;
+  border: 1px solid #e3e2dc;
+  border-radius: 9px;
+  background: transparent;
+  color: #55554f;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.logout-button:hover {
+  background: #f1f0eb;
+  border-color: #d2d1c9;
+  color: #242421;
+}
+
+.logout-button:focus-visible {
+  outline: 2px solid #77776d;
+  outline-offset: 3px;
+}
+
+.logout-button:active {
+  background: #e9e8e1;
+}
