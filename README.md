@@ -60,7 +60,7 @@
 <<<<<<< HEAD
 
 =======
-![시스템 아키텍처](.docs/Read-it-project-architecture.png)
+![시스템 아키텍처](./docs/Read-it-project-architecture.png)
 >>>>>>> 09693bf (Fix readme)
 
 
