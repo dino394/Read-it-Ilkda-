@@ -1,3 +1,5 @@
+import "./ImportPanel.css";
+
 interface ImportPanelProps {
   onAddText: () => void;
   onAddFile: (

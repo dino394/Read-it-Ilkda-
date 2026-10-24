@@ -1,4 +1,5 @@
 import type { Document } from "../types/document";
+import "./DocumentCard.css";
 
 interface DocumentCardProps {
 document: Document;

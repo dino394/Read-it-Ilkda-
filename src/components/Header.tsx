@@ -1,3 +1,5 @@
+import "./Header.css";
+
 interface HeaderProps {
   darkMode: boolean;
   onToggleDarkMode: () => void;
@@ -21,10 +23,11 @@ function Header({
         {darkMode ? "☀️" : "🌙"}
       </button>
        <button
-        onClick={onLogout}
-      >
-        로그아웃
-      </button>
+          className="logout-button"
+          onClick={onLogout}
+        >
+          로그아웃
+        </button>
     </header>
   );
 }

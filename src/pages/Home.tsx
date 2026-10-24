@@ -9,6 +9,7 @@ import DocumentCard from "../components/DocumentCard";
 import EmptyState from "../components/EmptyState";
 import AddTextModal from "../components/AddTextModal";
 import AddUrlPanel from "../components/AddUrlPanel";
+import "../components/DocumentCard.css";
 
 interface HomeProps {
   documents: Document[];
