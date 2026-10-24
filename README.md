@@ -57,30 +57,8 @@
 
 
 ![읽다 시스템 아키텍처](./docs/system-architecture.png)
-<<<<<<< HEAD
 
-=======
 ![시스템 아키텍처](./docs/Read-it-project-architecture.png)
->>>>>>> 09693bf (Fix readme)
-
-
-Read-it
-├── Frontend
-│   ├── React
-│   ├── TypeScript
-│   ├── UI Components
-│   ├── Pages
-│   └── API Communication
-│
-└── Backend
-    ├── Express API
-    ├── Authentication
-    │   ├── JWT
-    │   └── bcrypt
-    ├── URL Validation
-    ├── Content Parsing
-    │   └── Cheerio
-    └── PostgreSQL
 
 
 ## ⚙️ 주요 구현 내용
