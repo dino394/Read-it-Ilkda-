@@ -56,22 +56,8 @@
 읽다는 프론트엔드와 백엔드를 분리한 구조로 개발했습니다. 프론트엔드는 사용자 인터페이스와 상태 관리를 담당하고, 백엔드는 API 요청 처리와 인증, 데이터베이스 접근을 담당합니다.
 
 
-flowchart TD
-    User["사용자"]
-    Frontend["React + TypeScript<br/>GitHub Pages"]
-    API["Express REST API<br/>Render"]
-    Auth["JWT 인증 미들웨어"]
-    DB[("PostgreSQL")]
-    Parser["Cheerio<br/>웹 콘텐츠 처리"]
+![읽다 시스템 아키텍처](docs/system-architecture.png)
 
-    User --> Frontend
-    Frontend -->|"HTTP 요청 / JSON 응답"| API
-    API --> Auth
-    Auth -->|"인증 성공"| DB
-    API --> Parser
-    Parser -->|"추출한 콘텐츠"| API
-    DB --> API
-    API --> Frontend
 
 
 Read-it
